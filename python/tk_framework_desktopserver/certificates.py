@@ -88,7 +88,7 @@ class _CertificateHandler(object):
         """
         raise NotImplemented("'_CertificateInterface.register' not implemented!")
 
-    def _check_call(self, ctx, cmd):
+    def _check_call(self, ctx, cmd, skip_error_code=False):
         """
         Runs a process and raises an exception if the return code is not 0.
 
@@ -122,7 +122,7 @@ class _CertificateHandler(object):
         stdout, _ = p.communicate()
         self._logger.debug("Stdout:\n%s" % stdout)
         self._logger.debug("Return code: %s" % p.returncode)
-        if p.returncode != 0:
+        if not skip_error_code and p.returncode != 0:
             raise CertificateRegistrationError("There was a problem %s." % ctx)
         return stdout
 
@@ -138,7 +138,8 @@ class _CertificateHandler(object):
         # The 'security' tool on OSX 10.7 puts everything in upper case, so lower case everything
         # for testing.
         return "shotgun" in self._check_call(
-            "validating if the certificate was installed", self._get_is_registered_cmd()
+            "validating if the certificate was installed", self._get_is_registered_cmd(),
+            skip_error_code=True
         ).lower()
 
     def unregister(self):
