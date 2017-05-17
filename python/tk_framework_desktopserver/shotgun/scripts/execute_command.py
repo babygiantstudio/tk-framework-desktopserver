@@ -11,7 +11,7 @@
 import sys
 import cPickle
 import os
-import logging
+
 
 # Special, non-engine commands that we'll need to handle ourselves.
 CORE_INFO_COMMAND = "__core_info"
@@ -21,6 +21,7 @@ UPGRADE_CHECK_COMMAND = "__upgrade_check"
 # in the global scope, but we can go ahead and define the logger name
 # to be used throughout the script.
 LOGGER_NAME = "wss2.execute_command"
+
 
 def app_upgrade_info(engine):
     """
@@ -50,6 +51,7 @@ def app_upgrade_info(engine):
     logger.info("<code style='%s'>%s updates</code>" % (code_css_block, tank_cmd))
     logger.info("")
 
+
 def core_info(engine):
     """
     Builds and logs a report on whether the currently-installed core is up to
@@ -63,9 +65,11 @@ def core_info(engine):
 
     code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
+    install_root = engine.sgtk.pipeline_configuration.get_install_location()
+
     # Create an upgrader instance that we can query if the install is up to date.
     installer = TankCoreUpdater(
-        engine.sgtk.pipeline_configuration.get_install_location(),
+        install_root,
         logger,
     )
 
@@ -73,14 +77,14 @@ def core_info(engine):
     lv = installer.get_update_version_number()
 
     logger.info(
-        "You are currently running version %s of the Shotgun Pipeline Toolkit." % cv
+        "You are currently running version %s of the Shotgun Pipeline Toolkit.", cv
     )
 
     if not engine.sgtk.pipeline_configuration.is_localized():
         logger.info("")
         logger.info(
             "Your core API is located in <code>%s</code> and is shared with other "
-            "projects." % install_root
+            "projects.", install_root
         )
 
     logger.info("")
@@ -88,23 +92,22 @@ def core_info(engine):
 
     if status == TankCoreUpdater.UP_TO_DATE:
         logger.info(
-            "<b>You are up to date! There is no need to update the Toolkit "
-            "Core API at this time!</b>"
+            "**You are up to date! There is no need to update the Toolkit "
+            "Core API at this time!**"
         )
     elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
         req_sg = installer.get_required_sg_version_for_update()
         logger.warning(
-            "<b>A new version (%s) of the core API is available however "
-            "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg)
+            "**A new version (%s) of the core API is available however "
+            "it requires a more recent version (%s) of Shotgun!**", lv, req_sg
         )
     elif status == TankCoreUpdater.UPDATE_POSSIBLE:
         (summary, url) = installer.get_release_notes()
 
-        logger.info("<b>A new version of the Toolkit API (%s) is available!</b>" % lv)
+        logger.info("**A new version of the Toolkit API (%s) is available!**", lv)
         logger.info("")
         logger.info(
-            "<b>Change Summary:</b> %s <a href='%s' target=_new>"
-            "Click for detailed Release Notes</a>" % (summary, url)
+            "**Change Summary:** %s [Click for detailed Release Notes](%s)", summary, url
         )
         logger.info("")
         logger.info("In order to upgrade, execute the following command in a shell:")
@@ -115,10 +118,12 @@ def core_info(engine):
         else:
             tank_cmd = os.path.join(install_root, "tank")
 
-        logger.info("<code style='%s'>%s core</code>" % (code_css_block, tank_cmd))
-        logger.info("")
+        logger.info("```")
+        logger.info("%s core" % tank_cmd)
+        logger.info("```")
     else:
         raise sgtk.TankError("Unknown Upgrade state!")
+
 
 def bootstrap(config, base_configuration, entity, engine_name):
     """
@@ -161,6 +166,7 @@ def bootstrap(config, base_configuration, entity, engine_name):
     logger.debug("Engine %s started using entity %s", engine, entity)
 
     return engine
+
 
 def execute(config, project, name, entities, base_configuration, engine_name):
     """
@@ -257,4 +263,3 @@ if __name__ == "__main__":
     )
 
     sys.exit(0)
-
