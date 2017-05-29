@@ -296,6 +296,7 @@ class ShotgunAPI(object):
         manager.allow_config_overrides = False
         manager.plugin_id = "basic.shotgun"
         manager.base_configuration = constants.BASE_CONFIG_URI
+        manager.bundle_cache_fallback_paths = self._engine.sgtk.bundle_cache_fallback_paths
 
         all_actions = dict()
         all_pc_data = self._get_pipeline_configuration_data(
